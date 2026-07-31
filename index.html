@@ -66,6 +66,7 @@
   .ring .num span{font-size:11px;color:var(--sub)}
 
   .vrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .verbar{font-size:11px;color:var(--muted,#7a8aa0);text-align:center;margin:2px 0 10px;letter-spacing:.3px}
   /* 今日待做 todo */
   .todo{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
   .todo:last-child{border-bottom:none}
@@ -172,6 +173,7 @@
   <!-- 今日 -->
   <section id="tab-today">
     <div class="card" id="todayHead"></div>
+    <div class="verbar">朝夕工作台 v4.2 · 无阶段锁定 + 计划自动追平</div>
     <div class="card">
       <h3>📝 今日待做 <span class="tag bazi">八字项目</span></h3>
       <div id="todayTodos"></div>
@@ -403,7 +405,7 @@ function todayTasks(){
     if(on)p.items.forEach(vid2=>out.push({videoId:vid2,phase:p.name,phaseIdx:i,logic:p.logic,optional:!!p.optional,day:d}));
   });
   (DATA.manualToday||[]).filter(m=>m.day===d).forEach(m=>out.push({videoId:m.videoId,phase:'手动添加',phaseIdx:999,logic:'你主动加入今日的训练',optional:false,day:d}));
-  return out.filter(t=>t.phaseIdx===999||phaseUnlocked(t.phaseIdx));
+  return out;
 }
 function lockedPhaseToday(){
   const d=currentDay();const locked=[];
@@ -525,9 +527,7 @@ window.pickFeel=function(id,n){FEEL[id]=n;document.querySelectorAll('#fr_'+id+' 
 window.confirmCheck=function(id,day){const feel=FEEL[id]||4;const note=(document.getElementById('note_'+id).value||'').trim();
   DATA.checkins.push({date:t0,videoId:id,planDay:day,feel,note});save();renderFitToday();
   if(currentTab==='data')renderData();toast('已打卡 ✓ 继续下一项');};
-function renderFitToday(){const box=document.getElementById('ftab-ftoday');const locked=lockedPhaseToday();const tasks=todayTasks();
-  if(dayDiff(t0,DATA.planStart)<0){box.innerHTML=`<div class="card"><div class="muted">计划将于 ${DATA.planStart} 才开始。</div><button class="btn primary block" style="margin-top:10px" onclick="resetPlan()">▶ 从今天开始（重置计划）</button></div>`;return;}
-  if(locked.length){box.innerHTML=`<div class="card"><div class="alert" style="margin:0">🔒 前置阶段未完成，今日训练已锁定：${locked.join('、')}。<br>先去「健身→周计划」把已解锁阶段打卡完成即可解锁。</div></div>`;return;}
+function renderFitToday(){const box=document.getElementById('ftab-ftoday');const tasks=todayTasks();
   if(!tasks.length){box.innerHTML='<div class="card"><div class="empty">今日计划为休息日 💤 可做可选有氧或主动恢复。<br>想练也行：点上方「➕ 添加今日训练」手动加一项。</div></div>';return;}
   box.innerHTML='';tasks.forEach(t=>box.appendChild(taskCard(t,true)));}
 
@@ -687,6 +687,10 @@ document.getElementById('btnReplan').addEventListener('click',()=>{const freq=pr
   DATA.plan.phases=phases;DATA.planStart=t0;save();renderPlan();toast('已按「由下而上」重新统筹 ✓');});
 
 (async function init(){await probeCloud();if(!DATA)DATA=await load();
+  // 自动追平：若计划已开始超过总天数(过期)或尚未开始，把计划起点拉回今天，避免今日训练空白
+  if(dayDiff(t0,DATA.planStart) >= DATA.plan.totalDays || dayDiff(t0,DATA.planStart) < 0){
+    DATA.planStart=t0;save();toast('计划已自动从今天重新开始 ✓');
+  }
   if(USE_CLOUD){document.getElementById('subtitle').textContent='已连接云端，自动同步';}
   renderToday();})();
 </script>
