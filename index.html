@@ -164,11 +164,11 @@ const t0=new Date().toISOString().slice(0,10);
 const DEFAULT_DATA={
   goal:{name:'本月矫正腿型（XO 腿型）',period:'2026-08',logic:'由下而上：足弓 → 小腿 → 大腿 → 骨盆；足弓稳定后再加膝超伸训练'},
   planStart:t0,
-  plan:{name:'腿型矫正 14 天计划',totalDays:14,freq:5,phases:[
+  plan:{name:'腿型矫正 周计划',totalDays:7,freq:5,phases:[
     {name:'阶段1 · 足弓与下肢力线',days:[1,2],items:['V1'],logic:'先重建足弓主动发力，是一切下肢矫正的地基'},
-    {name:'阶段2 · 膝超伸改善',days:[2,3,4],items:['V2'],logic:'足弓稳定后加入，避免膝超伸代偿；无深蹲、膝盖友好'},
+    {name:'阶段2 · 膝超伸改善',days:[3,4],items:['V2'],logic:'足弓稳定后加入，避免膝超伸代偿；无深蹲、膝盖友好'},
     {name:'阶段3 · 有氧习惯（每日可选）',days:'daily',optional:true,items:['V3'],logic:'每日可加超慢跑，培养运动习惯、不追求速度'},
-    {name:'阶段4 · 面部与颌面',days:[5,6,7,8],items:['V4','V5'],logic:'与下肢分开日；TMJ 注意：不要强制张大嘴，小幅度完成'}
+    {name:'阶段4 · 面部与颌面',days:[5,6,7],items:['V4','V5'],logic:'与下肢分开日；TMJ 注意：不要强制张大嘴，小幅度完成'}
   ]},
   videos:[
     {id:'V1',platform:'B站',title:'20分钟根本性纠正不良腿型｜下肢力线回正私教课｜足弓重建4.0版',url:'https://www.bilibili.com/video/BV1ofKEzjEUd/',improve:'不良腿型 / 下肢力线 / 足弓塌陷',goal:'足弓重建、下肢力线回正',caution:'足弓主动发力；4.0版建议有基础者，新手从基础版过渡',duration:'20分钟'},
@@ -438,7 +438,7 @@ document.getElementById('btnAddToPlan').addEventListener('click',()=>{
 /* 重新统筹计划 */
 document.getElementById('btnReplan').addEventListener('click',()=>{
   const freq=prompt('每周训练几天？（默认5）',(DATA.plan.freq||5))||5;
-  const total=prompt('本期共多少天？（默认14）',DATA.plan.totalDays)||14;
+  const total=prompt('本期共多少天？（默认7）',DATA.plan.totalDays)||7;
   const gname=prompt('本期主目标：',DATA.goal.name)||DATA.goal.name;
   DATA.plan.freq=parseInt(freq,10)||5;DATA.plan.totalDays=parseInt(total,10)||14;DATA.goal.name=gname;
   // 分类
@@ -456,7 +456,7 @@ document.getElementById('btnReplan').addEventListener('click',()=>{
   const lower=DATA.videos.filter(v=>cat(v)==='lower').sort((a,b)=>chain(a)-chain(b));
   const face=DATA.videos.filter(v=>cat(v)==='face');
   const aerobic=DATA.videos.filter(v=>cat(v)==='aerobic');
-  const phases=[];let day=1;const span=Math.max(2,Math.round(14/(DATA.plan.freq)));
+  const phases=[];let day=1;const span=Math.max(2,Math.round(DATA.plan.totalDays/(DATA.plan.freq)));
   const range=(a,b)=>{const r=[];for(let i=a;i<=b;i++)r.push(i);return r;};
   lower.forEach((v,i)=>{const s=day;const e=Math.min(DATA.plan.totalDays,day+1);
     const logic=i===0?'先重建足弓/足底主动发力，是一切下肢矫正的地基':(i===lower.length-1?'末端阶段，巩固整体力线':('由下而上第'+(i+1)+'环，承接上一阶段'));
