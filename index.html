@@ -65,6 +65,7 @@
   .ring .num b{font-size:26px;font-weight:800}
   .ring .num span{font-size:11px;color:var(--sub)}
 
+  .vrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
   /* 今日待做 todo */
   .todo{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
   .todo:last-child{border-bottom:none}
@@ -192,6 +193,10 @@
       <div class="stab" data-ftab="flib">视频库</div>
       <div class="stab" data-ftab="frep">周报</div>
     </div>
+    <div class="toolbar" style="margin-bottom:10px">
+      <button class="btn primary" onclick="showAddToday()">➕ 添加今日训练</button>
+    </div>
+    <div id="addTodayBox"></div>
     <div id="ftab-ftoday"></div>
     <div id="ftab-fplan" class="hidden">
       <div class="alert hidden" id="planAlert"></div>
@@ -379,7 +384,8 @@ const DEFAULT_DATA={
   ],
   checkins:[],
   diary:{},
-  todos:{'2026-07-31':JSON.parse(JSON.stringify(SEED_TODOS_0731))}
+  todos:{'2026-07-31':JSON.parse(JSON.stringify(SEED_TODOS_0731))},
+  manualToday:[]
 };
 let DATA;
 let USE_CLOUD=false;
@@ -396,7 +402,8 @@ function todayTasks(){
     const on=(p.days==='daily')||(Array.isArray(p.days)&&p.days.includes(d));
     if(on)p.items.forEach(vid2=>out.push({videoId:vid2,phase:p.name,phaseIdx:i,logic:p.logic,optional:!!p.optional,day:d}));
   });
-  return out.filter(t=>phaseUnlocked(t.phaseIdx));
+  (DATA.manualToday||[]).filter(m=>m.day===d).forEach(m=>out.push({videoId:m.videoId,phase:'手动添加',phaseIdx:999,logic:'你主动加入今日的训练',optional:false,day:d}));
+  return out.filter(t=>t.phaseIdx===999||phaseUnlocked(t.phaseIdx));
 }
 function lockedPhaseToday(){
   const d=currentDay();const locked=[];
@@ -519,10 +526,27 @@ window.confirmCheck=function(id,day){const feel=FEEL[id]||4;const note=(document
   DATA.checkins.push({date:t0,videoId:id,planDay:day,feel,note});save();renderFitToday();
   if(currentTab==='data')renderData();toast('已打卡 ✓ 继续下一项');};
 function renderFitToday(){const box=document.getElementById('ftab-ftoday');const locked=lockedPhaseToday();const tasks=todayTasks();
-  if(dayDiff(t0,DATA.planStart)<0){box.innerHTML=`<div class="card"><div class="muted">计划将于 ${DATA.planStart} 开始</div></div>`;return;}
-  if(locked.length){box.innerHTML=`<div class="card"><div class="alert" style="margin:0">🔒 前置阶段未完成，今日训练已锁定：${locked.join('、')}</div></div>`;return;}
-  if(!tasks.length){box.innerHTML='<div class="card"><div class="empty">今日休息日 💤 可做可选有氧或主动恢复</div></div>';return;}
+  if(dayDiff(t0,DATA.planStart)<0){box.innerHTML=`<div class="card"><div class="muted">计划将于 ${DATA.planStart} 才开始。</div><button class="btn primary block" style="margin-top:10px" onclick="resetPlan()">▶ 从今天开始（重置计划）</button></div>`;return;}
+  if(locked.length){box.innerHTML=`<div class="card"><div class="alert" style="margin:0">🔒 前置阶段未完成，今日训练已锁定：${locked.join('、')}。<br>先去「健身→周计划」把已解锁阶段打卡完成即可解锁。</div></div>`;return;}
+  if(!tasks.length){box.innerHTML='<div class="card"><div class="empty">今日计划为休息日 💤 可做可选有氧或主动恢复。<br>想练也行：点上方「➕ 添加今日训练」手动加一项。</div></div>';return;}
   box.innerHTML='';tasks.forEach(t=>box.appendChild(taskCard(t,true)));}
+
+/* ===== 手动添加今日训练 / 重置计划 ===== */
+window.showAddToday=function(){
+  const box=document.getElementById('addTodayBox');
+  if(box.dataset.open==='1'){box.innerHTML='';box.dataset.open='';return;}
+  box.dataset.open='1';
+  const items=DATA.videos.map(v=>`<span class="vchip" style="cursor:pointer" onclick="addTodayTrain('${v.id}')"><span class="ck">＋</span>${v.title.slice(0,16)}…</span>`).join('');
+  box.innerHTML=`<div class="card" style="margin-top:8px"><div class="muted" style="margin-bottom:6px">选一个视频加入今日：</div><div class="vrow">${items}</div></div>`;
+};
+window.addTodayTrain=function(id){(DATA.manualToday=DATA.manualToday||[]).push({videoId:id,day:currentDay()});save();const b=document.getElementById('addTodayBox');b.innerHTML='';b.dataset.open='';renderFitToday();toast('已加入今日训练 ✓');};
+window.resetPlan=function(){
+  if(!confirm('重置为默认「腿型矫正周计划」并从今天开始？\n（保留日记与待做，仅重置训练计划与开始日期）'))return;
+  DATA.plan=JSON.parse(JSON.stringify(DEFAULT_DATA.plan));
+  DATA.planStart=t0;DATA.manualToday=[];save();
+  renderFitToday();renderPlan();if(currentTab==='data')renderData();
+  toast('已重置为默认计划，今日已有训练 ✓');
+};
 
 /* ===== 健身 · 计划 ===== */
 function renderPlan(){const g=document.getElementById('goalCard');
