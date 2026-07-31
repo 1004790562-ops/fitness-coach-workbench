@@ -481,10 +481,7 @@ function renderToday(){
   if(!todos.length){tl.innerHTML='<div class="empty" style="padding:14px">今日暂无待做，可在下方添加或从 Obsidian 同步</div>';}
   todos.forEach(t=>tl.appendChild(todoEl(t,t0)));
   // 训练速览
-  const locked=lockedPhaseToday();
-  if(dayDiff(t0,DATA.planStart)<0){fitBox.innerHTML=`<div class="card"><div class="muted">计划将于 ${DATA.planStart} 开始</div></div>`;}
-  else if(locked.length){fitBox.innerHTML=`<div class="card"><div class="alert" style="margin:0">🔒 前置阶段未完成，今日训练已锁定：${locked.join('、')}。先把已解锁任务打卡完成。</div></div>`;}
-  else if(!tasks.length){fitBox.innerHTML=`<div class="card"><div class="empty">今日休息日 💤 可做可选有氧或主动恢复</div></div>`;}
+  if(!tasks.length){fitBox.innerHTML=`<div class="card"><div class="empty">今日休息日 💤 可做可选有氧或主动恢复。<br>可在「健身→今日训练」点「➕ 添加今日训练」手动加一项。</div></div>`;}
   else{fitBox.innerHTML='';tasks.forEach(t=>fitBox.appendChild(taskCard(t,true)));}
   // 日记速览
   const di=getDiary(t0);const moodEmoji=di.moodEmoji||'—';const sleepTxt=di.sleep?di.sleep+'h':'未填';
