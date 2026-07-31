@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>健身教练工作台</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --ink:#1f2330; --sub:#6b7280;
+    --line:#e6e8ec; --brand:#ff5a5f; --brand2:#3b82f6; --ok:#16a34a; --warn:#d97706;
+    --radius:16px; --shadow:0 1px 3px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.04);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;padding-bottom:84px}
+  header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);padding:14px 16px 10px}
+  .title{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .title .dot{width:10px;height:10px;border-radius:50%;background:var(--brand)}
+  .syncbar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);
+    padding:8px 12px;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600}
+  .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .btn.ghost{background:#f1f3f5}
+  .btn.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .btn.warn{background:var(--warn);color:#fff;border-color:var(--warn)}
+  .btn:active{transform:scale(.97)}
+  .btn[disabled]{opacity:.45}
+  .tabs{display:flex;gap:6px;padding:10px 12px;position:sticky;top:64px;z-index:9;
+    background:var(--bg);overflow-x:auto}
+  .tab{flex:0 0 auto;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);
+    font-size:13px;font-weight:600;color:var(--sub);white-space:nowrap}
+  .tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .wrap{padding:4px 14px 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+  .card h3{margin:0 0 8px;font-size:15px}
+  .muted{color:var(--sub);font-size:13px}
+  .tag{display:inline-block;background:#eef2ff;color:#374151;font-size:12px;padding:2px 8px;border-radius:999px;margin:2px 4px 2px 0}
+  .tag.b{background:#fef2f2;color:#b91c1c}
+  .tag.g{background:#ecfdf5;color:#047857}
+  .row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .row:last-child{border-bottom:none}
+  .row .k{color:var(--sub);font-size:13px;flex:0 0 84px}
+  .row .v{font-size:14px;text-align:right;word-break:break-all}
+  a.link{color:var(--brand2);text-decoration:none;font-size:13px;word-break:break-all}
+  .task{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:#fff;box-shadow:var(--shadow)}
+  .task.done{border-color:#a7f3d0;background:#f0fdf4}
+  .task.locked{border-color:#fde68a;background:#fffbeb}
+  .task .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .task .tt{font-weight:700;font-size:15px}
+  .task .meta{font-size:12.5px;color:var(--sub);margin-top:2px}
+  .task .logic{font-size:12.5px;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;
+    padding:6px 8px;border-radius:8px;margin:8px 0}
+  .task .lockmsg{font-size:13px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;
+    padding:8px;border-radius:8px;margin:8px 0}
+  .task .acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .task .acts .btn{flex:1;min-width:120px;text-align:center}
+  .feelrow{display:flex;gap:6px;margin-top:10px;align-items:center}
+  .feelrow .fb{flex:1;padding:8px 0;border:1px solid var(--line);border-radius:10px;text-align:center;font-weight:700;background:#fff}
+  .feelrow .fb.sel{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .noteinp{width:100%;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit}
+  .progress{height:10px;background:#eef2f7;border-radius:999px;overflow:hidden;margin:10px 0}
+  .progress>div{height:100%;background:linear-gradient(90deg,var(--brand),#ff8a8d);border-radius:999px;transition:.3s}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill.ok{background:#ecfdf5;color:#047857}
+  .pill.warn{background:#fffbeb;color:#b45309}
+  .pill.lock{background:#fef3c7;color:#92400e}
+  .stat{display:flex;gap:10px;margin:10px 0}
+  .stat .box{flex:1;background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .stat .n{font-size:22px;font-weight:800}
+  .stat .l{font-size:12px;color:var(--sub)}
+  .banner{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12.5px;
+    padding:8px 12px;border-radius:10px;margin:0 14px 12px}
+  .phase{border-left:4px solid var(--brand2);padding:8px 12px;margin-bottom:12px;background:#fff;border-radius:0 12px 12px 0;box-shadow:var(--shadow)}
+  .phase.locked{border-left-color:#f59e0b;opacity:.85}
+  .phase h4{margin:0 0 4px;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+  .phase .pmeta{font-size:12px;color:var(--sub);margin-bottom:6px}
+  .vchip{display:inline-flex;align-items:center;gap:6px;background:#f1f3f5;border:1px solid var(--line);
+    border-radius:10px;padding:6px 10px;margin:4px 6px 4px 0;font-size:13px}
+  .vchip.done{background:#ecfdf5;border-color:#a7f3d0;color:#047857}
+  .vchip .ck{font-weight:700}
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:#fff;
+    padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:50;pointer-events:none;max-width:90%}
+  .toast.show{opacity:1}
+  .hidden{display:none!important}
+  .empty{text-align:center;color:var(--sub);padding:30px 10px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .alert{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:10px 12px;border-radius:10px;margin-bottom:12px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="title"><span class="dot"></span>健身教练工作台</div>
+  <div class="syncbar">
+    <button class="btn ghost" id="btnSync">🔗 同步链接</button>
+    <button class="btn ghost" id="btnExport">⬇ 导出</button>
+    <button class="btn ghost" id="btnImport">⬆ 导入</button>
+    <button class="btn primary" id="btnAddVideo">＋ 视频</button>
+    <input type="file" id="fileInput" accept="application/json" class="hidden">
+  </div>
+</header>
+
+<div class="banner" id="syncBanner">
+  数据存本机。跨设备：点「🔗 同步链接」生成链接，另一台设备打开即载入同一份数据。
+</div>
+
+<nav class="tabs" id="tabs">
+  <div class="tab active" data-tab="today">📅 今日</div>
+  <div class="tab" data-tab="plan">🗺 计划</div>
+  <div class="tab" data-tab="rep">📈 周报</div>
+  <div class="tab" data-tab="lib">📚 视频库</div>
+</nav>
+
+<div class="wrap">
+
+  <!-- 今日 -->
+  <section id="tab-today">
+    <div class="card" id="todayHead"></div>
+    <div id="todayList"></div>
+  </section>
+
+  <!-- 计划 -->
+  <section id="tab-plan" class="hidden">
+    <div class="alert hidden" id="planAlert"></div>
+    <div class="card" id="goalCard"></div>
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn primary" id="btnReplan">🔄 重新统筹计划</button>
+        <button class="btn ghost" id="btnAddToPlan">＋ 把视频加入计划</button>
+      </div>
+      <div class="muted" style="margin-top:8px">可随时重排；若最近打卡差，教练会提醒「先别加新目标 / 延后 / 锁住前置阶段」。</div>
+    </div>
+    <div id="planPhases"></div>
+  </section>
+
+  <!-- 周报 -->
+  <section id="tab-rep" class="hidden">
+    <div class="card">
+      <h3>本周训练报告</h3>
+      <div class="stat">
+        <div class="box"><div class="n" id="repCount">0</div><div class="l">本周打卡</div></div>
+        <div class="box"><div class="n" id="repAvg">0</div><div class="l">平均感受</div></div>
+        <div class="box"><div class="n" id="repStreak">0</div><div class="l">连续天数</div></div>
+      </div>
+      <div class="progress"><div id="repBar" style="width:0%"></div></div>
+      <div id="repBody" class="muted"></div>
+    </div>
+    <div id="repRecent" class="card"><h3>近期打卡</h3><div id="repRecentList"></div></div>
+  </section>
+
+  <!-- 视频库 -->
+  <section id="tab-lib" class="hidden">
+    <div id="videoList"></div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LS_KEY='fitness_coach_v3';
+const t0=new Date().toISOString().slice(0,10);
+const DEFAULT_DATA={
+  goal:{name:'本月矫正腿型（XO 腿型）',period:'2026-08',logic:'由下而上：足弓 → 小腿 → 大腿 → 骨盆；足弓稳定后再加膝超伸训练'},
+  planStart:t0,
+  plan:{name:'腿型矫正 14 天计划',totalDays:14,freq:5,phases:[
+    {name:'阶段1 · 足弓与下肢力线',days:[1,2],items:['V1'],logic:'先重建足弓主动发力，是一切下肢矫正的地基'},
+    {name:'阶段2 · 膝超伸改善',days:[2,3,4],items:['V2'],logic:'足弓稳定后加入，避免膝超伸代偿；无深蹲、膝盖友好'},
+    {name:'阶段3 · 有氧习惯（每日可选）',days:'daily',optional:true,items:['V3'],logic:'每日可加超慢跑，培养运动习惯、不追求速度'},
+    {name:'阶段4 · 面部与颌面',days:[5,6,7,8],items:['V4','V5'],logic:'与下肢分开日；TMJ 注意：不要强制张大嘴，小幅度完成'}
+  ]},
+  videos:[
+    {id:'V1',platform:'B站',title:'20分钟根本性纠正不良腿型｜下肢力线回正私教课｜足弓重建4.0版',url:'https://www.bilibili.com/video/BV1ofKEzjEUd/',improve:'不良腿型 / 下肢力线 / 足弓塌陷',goal:'足弓重建、下肢力线回正',caution:'足弓主动发力；4.0版建议有基础者，新手从基础版过渡',duration:'20分钟'},
+    {id:'V2',platform:'B站',title:'10分钟改善膝超伸运动,瘦腿必练｜改善大腿前侧突+小腿粗｜无深蹲，膝盖友好！【韩小四April】',url:'https://www.bilibili.com/video/BV1jf4y1D7QM/',improve:'膝超伸 / 大腿前侧突 / 小腿粗',goal:'改善膝超伸、膝盖友好瘦腿',caution:'无深蹲、膝盖友好；避免塌腰',duration:'10分钟'},
+    {id:'V3',platform:'B站',title:'超慢跑初學專用｜180BPM跑30分鐘｜節拍器超慢跑｜班長超慢跑',url:'https://www.bilibili.com/video/BV13s4y1j7iq/',improve:'有氧基础 / 心肺',goal:'超慢跑有氧入门、养成习惯',caution:'180BPM、小步幅、前脚掌轻落',duration:'30分钟'},
+    {id:'V4',platform:'抖音',title:'双下巴退退退！每天1分钟，拯救下颌线‼️',url:'https://v.douyin.com/M_NhffgmB9s/',improve:'双下巴 / 下颌线模糊',goal:'面部轮廓（下颌线）优化',caution:'无特殊器械，按视频指令做面部瑜伽动作即可',duration:'约1分钟'},
+    {id:'V5',platform:'抖音',title:'颞下颌关节紊乱跟练一周',url:'https://v.douyin.com/GRYzG8srbL0/',improve:'TMJ / 大小脸 / 脸歪 / 脖子前倾 / 脊柱侧弯',goal:'TMJ（颞下颌关节）康复',caution:'【重要】不要强制张大嘴，小幅度完成；时间可缩短；按摩放松时间延长',duration:'11分钟'}
+  ],
+  checkins:[]
+};
+let DATA;
+let USE_CLOUD=false;
+const PLAN_START_MS=()=>new Date(DATA.planStart+'T00:00:00').getTime();
+function dayDiff(a,b){return Math.round((new Date(a+'T00:00:00')-new Date(b+'T00:00:00'))/86400000);}
+function currentDay(){const d=dayDiff(t0,DATA.planStart)+1;return d<1?1:d;}
+function vid(id){return DATA.videos.find(v=>v.id===id);}
+function isDone(videoId,planDay){return DATA.checkins.some(c=>c.videoId===videoId&&c.planDay===planDay);}
+function phaseItemsDone(p){return p.items.every(id=>DATA.checkins.some(c=>c.videoId===id));}
+function phaseUnlocked(i){if(i===0)return true;const prev=DATA.plan.phases[i-1];return phaseItemsDone(prev);}
+function todayTasks(){
+  const d=currentDay();const out=[];
+  DATA.plan.phases.forEach((p,i)=>{
+    const on=(p.days==='daily')||(Array.isArray(p.days)&&p.days.includes(d));
+    if(on)p.items.forEach(vid2=>out.push({videoId:vid2,phase:p.name,phaseIdx:i,logic:p.logic,optional:!!p.optional,day:d}));
+  });
+  // 仅保留已解锁阶段
+  return out.filter(t=>phaseUnlocked(t.phaseIdx));
+}
+function lockedPhaseToday(){
+  const d=currentDay();const locked=[];
+  DATA.plan.phases.forEach((p,i)=>{
+    const on=(p.days==='daily')||(Array.isArray(p.days)&&p.days.includes(d));
+    if(on&&!phaseUnlocked(i))locked.push(p.name);
+  });
+  return locked;
+}
+/* 自适应：最近7天打卡情况 */
+function recentPerf(){
+  const now=new Date();let cnt=0;
+  for(let i=0;i<7;i++){const d=new Date(now);d.setDate(now.getDate()-i);const ds=d.toISOString().slice(0,10);
+    if(DATA.checkins.some(c=>c.date===ds))cnt++;}
+  return cnt;
+}
+function perfPoor(){
+  const expected=Math.round((DATA.plan.freq||5)*0.6);
+  return recentPerf()<expected;
+}
+async function probeCloud(){try{const c=new AbortController();const t=setTimeout(()=>c.abort(),1500);
+  const r=await fetch('/api/data',{signal:c.signal});clearTimeout(t);USE_CLOUD=r.ok;}catch(e){USE_CLOUD=false;}}
+async function load(){if(USE_CLOUD){try{const r=await fetch('/api/data');const d=await r.json();if(d&&d.videos)return d;}catch(e){}}
+  try{const s=localStorage.getItem(LS_KEY);if(s)return JSON.parse(s);}catch(e){}return JSON.parse(JSON.stringify(DEFAULT_DATA));}
+async function save(){if(USE_CLOUD){try{await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(DATA)});return;}catch(e){}}
+  localStorage.setItem(LS_KEY,JSON.stringify(DATA));
+  try{history.replaceState(null,'','#d='+btoa(unescape(encodeURIComponent(JSON.stringify(DATA)))));}catch(e){}}
+function loadFromHash(){try{const h=location.hash;if(!h||h.indexOf('#d=')!==0)return false;
+  const d=JSON.parse(decodeURIComponent(escape(atob(h.slice(3)))));if(d&&d.videos){DATA=d;return true;}}catch(e){}return false;}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+
+/* tabs */
+document.getElementById('tabs').addEventListener('click',e=>{
+  const t=e.target.closest('.tab');if(!t)return;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+  const n=t.dataset.tab;['today','plan','rep','lib'].forEach(s=>document.getElementById('tab-'+s).classList.toggle('hidden',s!==n));
+  if(n==='today')renderToday();if(n==='plan')renderPlan();if(n==='rep')renderReport();if(n==='lib')renderLib();
+});
+
+/* 今日 */
+function renderToday(){
+  const d=currentDay();const head=document.getElementById('todayHead');const list=document.getElementById('todayList');
+  if(dayDiff(t0,DATA.planStart)<0){head.innerHTML='<h3>计划将于 '+DATA.planStart+' 开始</h3><div class="muted">距开始还有 '+Math.abs(dayDiff(t0,DATA.planStart))+' 天</div>';list.innerHTML='';return;}
+  if(d>DATA.plan.totalDays){head.innerHTML='<h3>🎉 本期 '+DATA.plan.name+' 已完成！</h3><div class="muted">可在「计划」里查看整体进度，或点「🔄 重新统筹计划」开启下期。</div>';list.innerHTML='';return;}
+  const locked=lockedPhaseToday();
+  const tasks=todayTasks();
+  const required=tasks.filter(t=>!t.optional);
+  const doneReq=required.filter(t=>isDone(t.videoId,t.day)).length;
+  const pct=required.length?Math.round(doneReq/required.length*100):100;
+  head.innerHTML=`<h3>第 ${d} 天 / 共 ${DATA.plan.totalDays} 天</h3>
+    <div class="muted">目标：${DATA.goal.name}</div>
+    <div class="progress"><div style="width:${pct}%"></div></div>
+    <div class="muted">今日必做 ${doneReq}/${required.length} ｜ 任务 ${tasks.length} 项${tasks.some(t=>t.optional)?'（含可选有氧）':''}</div>`;
+  list.innerHTML='';
+  if(locked.length){
+    list.innerHTML=`<div class="task locked"><div class="lockmsg">🔒 前置阶段未完成，今日训练已锁定：<br>${locked.join('、')}<br><span class="muted">先把已解锁的任务打卡完成，才会解锁下一阶段。</span></div></div>`;
+    return;
+  }
+  if(!tasks.length){list.innerHTML='<div class="empty">今日休息日 💤 可做可选有氧或主动恢复</div>';return;}
+  tasks.forEach(t=>list.appendChild(taskCard(t)));
+}
+function taskCard(t){
+  const v=vid(t.videoId);const el=document.createElement('div');el.className='task'+(isDone(t.videoId,t.day)?' done':'');
+  const done=isDone(t.videoId,t.day);
+  el.innerHTML=`
+    <div class="top"><div><div class="tt">${v.platform} · ${v.title}</div>
+      <div class="meta">${v.duration} ｜ ${t.phase}${t.optional?' ｜ 可选':''}</div></div>
+      ${done?'<span class="pill ok">✓ 已完成</span>':'<span class="pill warn">待完成</span>'}</div>
+    <div class="logic">逻辑：${t.logic}</div>
+    <div class="acts">
+      <button class="btn ghost" onclick="openVideo('${v.id}')">▶ 打开视频</button>
+      ${done?'<button class="btn ok" disabled>已打卡</button>':`<button class="btn primary" onclick="startCheck('${v.id}',${t.day},this)">✓ 完成打卡</button>`}
+    </div>
+    <div class="checkArea hidden"></div>`;
+  return el;
+}
+window.openVideo=function(id){const v=vid(id);if(v&&v.url)window.open(v.url,'_blank','noopener');};
+window.startCheck=function(id,day,btn){
+  const card=btn.closest('.task');const area=card.querySelector('.checkArea');area.classList.remove('hidden');
+  area.innerHTML=`<div class="muted" style="margin-bottom:4px">感受（1-5）：</div>
+    <div class="feelrow" id="fr_${id}">${[1,2,3,4,5].map(n=>`<div class="fb${n===4?' sel':''}" data-n="${n}" onclick="pickFeel('${id}',${n})">${n}</div>`).join('')}</div>
+    <input class="noteinp" id="note_${id}" placeholder="备注（如：略有酸胀 / 膝盖微痛）">
+    <button class="btn ok" style="width:100%;margin-top:8px" onclick="confirmCheck('${id}',${day})">确认打卡</button>`;
+  btn.disabled=true;
+};
+let FEEL={};
+window.pickFeel=function(id,n){FEEL[id]=n;document.querySelectorAll('#fr_'+id+' .fb').forEach(b=>b.classList.toggle('sel',+b.dataset.n===n));};
+window.confirmCheck=function(id,day){
+  const feel=FEEL[id]||4;const note=(document.getElementById('note_'+id).value||'').trim();
+  DATA.checkins.push({date:t0,videoId:id,planDay:day,feel,note});save();renderToday();
+  if(document.getElementById('tab-plan').classList.contains('hidden')===false)renderPlan();
+  if(document.getElementById('tab-rep').classList.contains('hidden')===false)renderReport();
+  toast('已打卡 ✓ 继续下一项');
+};
+
+/* 计划 */
+function renderPlan(){
+  const g=document.getElementById('goalCard');
+  g.innerHTML=`<h3>🎯 ${DATA.goal.name}</h3>
+    <div class="row"><div class="k">周期</div><div class="v">${DATA.goal.period}</div></div>
+    <div class="row"><div class="k">频率</div><div class="v">每周约 ${DATA.plan.freq||5} 天</div></div>
+    <div class="row"><div class="k">逻辑</div><div class="v">${DATA.goal.logic}</div></div>
+    <div class="muted" style="margin-top:8px">计划：${DATA.plan.name}（共 ${DATA.plan.totalDays} 天）。按「由下而上」逻辑链排列，前置阶段完成才解锁下一阶段。</div>`;
+  const box=document.getElementById('planPhases');box.innerHTML='';
+  DATA.plan.phases.forEach((p,i)=>{
+    const unlocked=phaseUnlocked(i);
+    const el=document.createElement('div');el.className='phase'+(unlocked?'':' locked');
+    const chips=p.items.map(id=>{const v=vid(id);const done=DATA.checkins.some(c=>c.videoId===id);
+      return `<span class="vchip${done?' done':''}" onclick="openVideo('${id}')"><span class="ck">${done?'✓':'○'}</span>${v?v.title.slice(0,12)+'…':id}</span>`;}).join('');
+    const dayLabel=p.days==='daily'?'每日':('第 '+p.days.join('、')+' 天');
+    el.innerHTML=`<h4>阶段${i+1} ｜ ${p.name} ${unlocked?'':'<span class="pill lock">🔒 未解锁</span>'}</h4>
+      <div class="pmeta">${dayLabel}${p.optional?' ｜ 可选':''}${unlocked?'':' ｜ 需先完成前置阶段'}</div>
+      <div class="logic" style="margin:6px 0">逻辑：${p.logic}</div>
+      <div>${chips}</div>`;
+    box.appendChild(el);
+  });
+}
+
+/* 周报 */
+function renderReport(){
+  const ci=DATA.checkins;
+  const now=new Date();const dow=(now.getDay()+6)%7;const mon=new Date(now);mon.setDate(now.getDate()-dow);
+  const start=mon.toISOString().slice(0,10);
+  const week=ci.filter(c=>c.date>=start);
+  document.getElementById('repCount').textContent=week.length;
+  const avg=week.length?(week.reduce((s,c)=>s+(+c.feel||0),0)/week.length).toFixed(1):'0';
+  document.getElementById('repAvg').textContent=avg;
+  let streak=0;const cd=new Date(now);
+  for(;;){const ds=cd.toISOString().slice(0,10);if(ci.some(c=>c.date===ds)){streak++;cd.setDate(cd.getDate()-1);}else break;}
+  document.getElementById('repStreak').textContent=streak;
+  let completedDays=0;
+  for(let d=1;d<=DATA.plan.totalDays;d++){
+    const tasks=[];DATA.plan.phases.forEach(p=>{const on=(p.days==='daily')||(Array.isArray(p.days)&&p.days.includes(d));
+      if(on&&!p.optional)p.items.forEach(v=>tasks.push(v));});
+    if(tasks.length&&tasks.every(v=>DATA.checkins.some(c=>c.videoId===v&&c.planDay===d)))completedDays++;
+  }
+  const rate=Math.round(completedDays/DATA.plan.totalDays*100);
+  document.getElementById('repBar').style.width=rate+'%';
+  const body=document.getElementById('repBody');
+  const pain=week.filter(c=>(c.note||'').match(/痛|伤|不适/)).length;
+  let html=`统计区间：本周（自 ${start} 起）<br>`;
+  html+=`打卡 ${week.length} 次，平均感受 ${avg}/5，连续 ${streak} 天。<br>`;
+  html+=`🎯 目标进度：已完成 ${completedDays}/${DATA.plan.totalDays} 个训练日（${rate}%），预计还需约 ${DATA.plan.totalDays-completedDays} 天达成本期。<br>`;
+  if(pain)html+=`<span class="pill warn">⚠ ${pain} 次记录提到疼痛/不适，建议降低强度或就医</span><br>`;
+  body.innerHTML=html;
+  const rl=document.getElementById('repRecentList');rl.innerHTML='';
+  const recent=[...ci].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
+  if(!recent.length){rl.innerHTML='<div class="empty">还没有打卡记录</div>';return;}
+  recent.forEach(c=>{const v=vid(c.videoId);const pain2=(c.note||'').match(/痛|伤|不适/);
+    const el=document.createElement('div');el.className='card';el.style.margin='0 0 8px';
+    el.innerHTML=`<div style="display:flex;justify-content:space-between"><b>${c.date}</b><span class="pill ${pain2?'warn':'ok'}">${pain2?'⚠ 注意':'感受 '+c.feel}</span></div>
+      <div class="muted" style="margin:4px 0">${v?v.title.slice(0,18)+'…':c.videoId}</div>
+      ${c.note?`<div class="muted">备注：${c.note}</div>`:''}`;rl.appendChild(el);});
+}
+
+/* 视频库 */
+function renderLib(){
+  const box=document.getElementById('videoList');box.innerHTML='';
+  const inPlan=id=>DATA.plan.phases.some(p=>p.items.includes(id));
+  DATA.videos.forEach(v=>{
+    const el=document.createElement('div');el.className='card';
+    const planned=inPlan(v.id);
+    el.innerHTML=`
+      <h3>${v.platform} · ${v.id} ${planned?'<span class="pill ok">已在计划</span>':'<span class="pill warn">未入计划</span>'}</h3>
+      <div style="font-size:14px;margin-bottom:6px">${v.title}</div>
+      <a class="link" href="${v.url}" target="_blank" rel="noopener">${v.url}</a>
+      <div style="margin-top:8px"><span class="tag b">${v.improve}</span><span class="tag g">${v.goal}</span></div>
+      <div class="row"><div class="k">跟练注意</div><div class="v">${v.caution}</div></div>
+      <div class="row"><div class="k">时长</div><div class="v">${v.duration}</div></div>`;
+    box.appendChild(el);
+  });
+}
+
+/* 同步链接 */
+document.getElementById('btnSync').addEventListener('click',()=>{
+  const url=location.origin+location.pathname+'#d='+btoa(unescape(encodeURIComponent(JSON.stringify(DATA))));
+  navigator.clipboard?.writeText(url).then(()=>toast('同步链接已复制 ✓'),()=>{});
+  prompt('把链接发到另一台设备打开即载入同一份数据（已复制到剪贴板）：',url);
+});
+(async function tryHashLoad(){if(loadFromHash()){localStorage.setItem(LS_KEY,JSON.stringify(DATA));
+  const b=document.getElementById('syncBanner');b.style.background='#ecfdf5';b.style.borderColor='#a7f3d0';
+  b.style.color='#047857';b.innerHTML='✅ 已从同步链接载入数据，已存到本机。';
+  setTimeout(()=>{b.style.cssText='';b.innerHTML='数据存本机。跨设备：点「🔗 同步链接」生成链接，另一台设备打开即载入同一份数据。';},4000);
+}})();
+
+/* 导出/导入/加视频 */
+document.getElementById('btnExport').addEventListener('click',()=>{const b=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='fitness-coach.json';a.click();toast('已导出');});
+document.getElementById('btnImport').addEventListener('click',()=>document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{DATA=JSON.parse(r.result);save();renderAll();toast('已导入');}catch(err){toast('文件格式错误');}};r.readAsText(f);});
+document.getElementById('btnAddVideo').addEventListener('click',()=>{
+  const platform=prompt('平台（抖音 / B站）：','抖音');if(platform===null)return;
+  const title=prompt('视频标题：');if(!title)return;const url=prompt('视频链接：');if(!url)return;
+  const improve=prompt('改善方向：')||'待补充';const goal=prompt('核心目标：')||'待补充';
+  const caution=prompt('跟练注意：')||'待补充';const duration=prompt('时长：')||'待补充';
+  const id='V'+(DATA.videos.length+1);
+  DATA.videos.push({id,platform,title,url,improve,goal,caution,duration});save();renderLib();
+  // 询问是否加入计划
+  const yn=confirm('已收录 '+id+'。是否把它加入训练计划？\n（选「确定」加入，选「取消」仅存视频库）');
+  if(yn){addVideoToPlan(id,true);}
+  else toast('已存视频库，未入计划');
+});
+
+/* 自适应：把视频加入计划 */
+function addVideoToPlan(id,fromAdd){
+  if(perfPoor()){
+    const cnt=recentPerf();const exp=Math.round((DATA.plan.freq||5)*0.6);
+    const go=confirm(`⚠️ 教练提醒：最近7天只打卡 ${cnt} 次（预期约 ${exp} 次），完成度偏低。\n建议先别新增目标、把当前计划稳住。\n\n仍要加入吗？\n「确定」=加入并自动延后到末尾；「取消」=暂不加入。`);
+    if(!go){toast('已暂缓加入，先稳住当前计划');renderPlan();return;}
+  }
+  // 选择阶段
+  let opts='把 '+id+' 加入哪个阶段？\n';
+  DATA.plan.phases.forEach((p,i)=>opts+=(i+1)+'. '+p.name+'\n');
+  opts+=(DATA.plan.phases.length+1)+'. 新建一个阶段（放最后）\n0. 延后（仅存，不排期）';
+  const sel=prompt(opts,'1');
+  if(sel===null||sel==='0'){toast('已延后，未排期');renderPlan();return;}
+  const idx=parseInt(sel,10)-1;
+  if(idx>=0&&idx<DATA.plan.phases.length){
+    if(!DATA.plan.phases[idx].items.includes(id))DATA.plan.phases[idx].items.push(id);
+    toast('已加入：'+DATA.plan.phases[idx].name);
+  }else if(idx===DATA.plan.phases.length){
+    const nm=prompt('新阶段名称：',vid(id).goal||'新阶段')||'新阶段';
+    const lg=prompt('该阶段训练逻辑（为什么这样排）：','按目标需要安排')||'按目标需要安排';
+    const total=DATA.plan.totalDays;
+    const lastDay=DATA.plan.phases.length?Math.max(...DATA.plan.phases.flatMap(p=>Array.isArray(p.days)?p.days:[total])):1;
+    DATA.plan.phases.push({name:nm,days:[Math.min(total,lastDay+1),Math.min(total,lastDay+2)],items:[id],logic:lg});
+    toast('已新建阶段并加入');
+  }
+  save();renderPlan();if(fromAdd)renderLib();
+}
+document.getElementById('btnAddToPlan').addEventListener('click',()=>{
+  const notIn=DATA.videos.filter(v=>!DATA.plan.phases.some(p=>p.items.includes(v.id)));
+  if(!notIn.length){toast('所有视频都已在计划里');return;}
+  let opts='选择要加入计划的视频：\n';notIn.forEach((v,i)=>opts+(i+1)+'. '+v.id+' '+v.title.slice(0,14)+'\n');
+  const sel=prompt(opts,'1');if(sel===null)return;const idx=parseInt(sel,10)-1;
+  if(idx>=0&&idx<notIn.length)addVideoToPlan(notIn[idx].id,false);
+});
+
+/* 重新统筹计划 */
+document.getElementById('btnReplan').addEventListener('click',()=>{
+  const freq=prompt('每周训练几天？（默认5）',(DATA.plan.freq||5))||5;
+  const total=prompt('本期共多少天？（默认14）',DATA.plan.totalDays)||14;
+  const gname=prompt('本期主目标：',DATA.goal.name)||DATA.goal.name;
+  DATA.plan.freq=parseInt(freq,10)||5;DATA.plan.totalDays=parseInt(total,10)||14;DATA.goal.name=gname;
+  // 分类
+  const cat=v=>{const s=v.improve+v.goal+v.title;
+    if(/下颌|面部|脸|TMJ|颞|颈|天鹅/.test(s))return 'face';
+    if(/有氧|慢跑|心肺|跑|心肺/.test(s))return 'aerobic';
+    return 'lower';};
+  const chain=v=>{const s=v.improve+v.goal+v.title;
+    if(/足弓|足基底|足踝|足/.test(s))return 1;
+    if(/小腿/.test(s))return 2;
+    if(/膝/.test(s))return 3;
+    if(/大腿/.test(s))return 4;
+    if(/骨盆|髋|假胯/.test(s))return 5;
+    return 3;};
+  const lower=DATA.videos.filter(v=>cat(v)==='lower').sort((a,b)=>chain(a)-chain(b));
+  const face=DATA.videos.filter(v=>cat(v)==='face');
+  const aerobic=DATA.videos.filter(v=>cat(v)==='aerobic');
+  const phases=[];let day=1;const span=Math.max(2,Math.round(14/(DATA.plan.freq)));
+  const range=(a,b)=>{const r=[];for(let i=a;i<=b;i++)r.push(i);return r;};
+  lower.forEach((v,i)=>{const s=day;const e=Math.min(DATA.plan.totalDays,day+1);
+    const logic=i===0?'先重建足弓/足底主动发力，是一切下肢矫正的地基':(i===lower.length-1?'末端阶段，巩固整体力线':('由下而上第'+(i+1)+'环，承接上一阶段'));
+    phases.push({name:'阶段'+(i+1)+' · '+v.goal.slice(0,10),days:range(s,e),items:[v.id],logic});day=e;});
+  if(face.length){const s=Math.min(DATA.plan.totalDays,day+1);const e=Math.min(DATA.plan.totalDays,s+Math.max(1,face.length));
+    phases.push({name:'阶段'+(lower.length+1)+' · 面部与颌面',days:range(s,e),items:face.map(v=>v.id),logic:'与下肢分开日；TMJ 注意小幅度完成，勿强制张大嘴'});}
+  if(aerobic.length)phases.push({name:'有氧（每日可选）',days:'daily',optional:true,items:aerobic.map(v=>v.id),logic:'每日可选，培养习惯、不追求速度'});
+  DATA.plan.phases=phases;DATA.planStart=t0;
+  save();renderPlan();toast('已按「由下而上」重新统筹 ✓');
+});
+
+function renderAll(){renderToday();renderPlan();renderReport();renderLib();}
+(async function init(){await probeCloud();if(!DATA)DATA=await load();
+  if(USE_CLOUD){const b=document.getElementById('syncBanner');b.style.background='#ecfdf5';b.style.borderColor='#a7f3d0';b.style.color='#047857';b.innerHTML='✅ 已连接云端数据，自动同步。';}
+  renderAll();})();
+</script>
+</body>
+</html>
