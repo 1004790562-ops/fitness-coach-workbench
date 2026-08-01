@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>朝夕的工作台</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="朝夕">
 <style>
   :root{
     /* 柔色主题 */
@@ -181,9 +186,10 @@
         <input id="newTodo" placeholder="添加一条今日待做…" onkeydown="if(event.key==='Enter')addTodo(t0)">
         <button class="btn ghost" onclick="addTodo(t0)">＋</button>
       </div>
-      <button class="btn primary block" style="margin-top:12px" onclick="syncToday()">📤 一键同步今日</button>
+      <button class="btn primary block" style="margin-top:12px" onclick="syncToday()">📋 复制今日内容（发给大脑归档）</button>
     </div>
     <div class="card" id="todayFit"></div>
+    <div class="card" id="todaySkincare"></div>
     <div class="card" id="todayDiary"></div>
   </section>
 
@@ -270,7 +276,6 @@
         <label>明日计划</label>
         <textarea id="dTomorrow" rows="3" placeholder="明天最想推进的一件事…" oninput="setDiaryField('tomorrow',this.value)"></textarea>
       </div>
-      <button class="btn primary block" onclick="syncToday()">📤 一键同步今日</button>
     </div>
   </section>
 
@@ -286,7 +291,7 @@
       <div class="progress"><div id="dRateBar" style="width:0%"></div></div>
     </div>
     <div class="card">
-      <h3>近 7 天打卡</h3>
+      <h3>近 7 天健身</h3>
       <div class="bars" id="chartCheck"></div>
     </div>
     <div class="card">
@@ -304,26 +309,62 @@
         <div class="box"><div class="n" id="dTodoTotal">0</div><div class="l">今日待做总数</div></div>
       </div>
     </div>
+    <div class="card">
+      <h3>🧴 护肤统计</h3>
+      <div class="stat">
+        <div class="box"><div class="n" id="skWeek">0</div><div class="l">本周护肤天</div></div>
+        <div class="box"><div class="n" id="skStreak">0</div><div class="l">连续天数</div></div>
+        <div class="box"><div class="n" id="skRate">0%</div><div class="l">护肤完成率</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>近 7 天护肤</h3>
+      <div class="bars" id="chartSkincare"></div>
+    </div>
+    <div class="card">
+      <button class="btn ghost block" onclick="toggleSettings()">⚙️ 设置（云端同步 / 备份）</button>
+      <div id="setPanel" class="hidden" style="margin-top:10px">
+        <h3>☁️ 云端同步（GitHub 私密 Gist）</h3>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">把数据存到你的 GitHub <b>私密 Gist</b>，换浏览器 / 清缓存 / 换手机都不丢。需要一枚带 <b>gist</b> 权限的 PAT（可随时撤销）。</p>
+        <input id="cloudToken" type="password" placeholder="粘贴 GitHub PAT（ghp_...）" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+        <div style="display:flex;gap:9px;margin-bottom:8px">
+          <button class="btn primary block" style="flex:1" onclick="connectCloud()">启用并同步</button>
+          <button class="btn ghost block" style="flex:1" onclick="disconnectCloud()">断开</button>
+        </div>
+        <p class="muted" id="cloudStatus" style="font-size:12px;margin:0 0 10px">未启用</p>
+        <h3>🔗 同步与备份</h3>
+        <button class="btn block" style="margin-bottom:9px" onclick="genSyncLink()">生成同步链接（跨设备）</button>
+        <button class="btn block" style="margin-bottom:6px;background:#fff3e0;color:#b26a00;border:1px solid #ffd591" onclick="exportData()">📦 一键备份（下载 JSON）</button>
+        <p class="muted" style="margin:0 0 10px;font-size:12px">备份后请把文件存进 <b>iCloud 云盘 / 文件 App</b>。</p>
+        <button class="btn ghost block" onclick="importData()">⬆ 从备份恢复（导入 JSON）</button>
+        <input type="file" id="fileInput" accept="application/json" class="hidden">
+      </div>
+    </div>
   </section>
 
-  <!-- 更多 -->
-  <section id="tab-more" class="hidden">
+  <!-- AI 机器人 -->
+  <section id="tab-ai" class="hidden">
     <div class="card">
-      <h3>🔗 同步与备份</h3>
-      <button class="btn block" style="margin-bottom:9px" onclick="genSyncLink()">生成同步链接（跨设备）</button>
-      <button class="btn primary block" style="margin-bottom:9px" onclick="syncToday()">📤 一键同步今日到 Obsidian</button>
-      <div style="display:flex;gap:9px">
-        <button class="btn ghost" style="flex:1" onclick="exportData()">⬇ 导出</button>
-        <button class="btn ghost" style="flex:1" onclick="importData()">⬆ 导入</button>
-      </div>
-      <input type="file" id="fileInput" accept="application/json" class="hidden">
+      <h3>🤖 AI 机器人（WorkBuddy 大脑桥接）</h3>
+      <p class="muted" style="font-size:12px;margin:0 0 8px">打字描述今天发生的事 → 点「📤 发给大脑」复制内容 → 粘贴到 WorkBuddy 对话发我 → 我按格式回传归类结果 → 你贴进下方「📥 接收大脑回传」框，点「写入工作台」自动归档。</p>
+    </div>
+    <div class="card">
+      <h3>✍️ 说说今天</h3>
+      <div id="aiLog" style="font-size:12px;color:#888;margin-bottom:8px;min-height:18px"></div>
+      <textarea id="aiInput" rows="3" placeholder="例如：等下要去买菜；刚才一个好心人帮我捡了东西，很感动；昨晚只睡了6小时"></textarea>
+      <button class="btn primary block" style="margin-top:8px" onclick="aiSend()">📤 发给大脑（复制内容）</button>
+    </div>
+    <div class="card">
+      <h3>📥 接收大脑回传</h3>
+      <p class="muted" style="font-size:12px;margin:0 0 8px">把 WorkBuddy 返回的文本粘贴到这里。支持标签：<b>[待做] [感恩] [睡眠] [心情] [护肤]</b>。</p>
+      <textarea id="aiRecv" rows="6" placeholder="粘贴 WorkBuddy 返回的内容，例如：&#10;[待做] 买菜&#10;[感恩] 好心人帮我捡东西&#10;[睡眠] 6.5&#10;[心情] 😊&#10;[护肤] 洁面,爽肤水,精华,面霜,防晒"></textarea>
+      <button class="btn ok block" style="margin-top:8px" onclick="aiApply()">✓ 写入工作台</button>
     </div>
     <div class="card about">
       <h3>🧠 三方架构</h3>
-      <p><b>工作台（这里）</b>＝手机端极速录入。你在这里打卡、写日记、记待做。</p>
-      <p><b>Obsidian</b>＝知识沉淀中枢。日记、八字项目、健身理论都按你的目录归档。</p>
-      <p><b>WorkBuddy 大脑</b>＝唯一双向桥。点「一键同步今日」把内容汇编好，发给大脑说「同步今日到 Obsidian」，大脑按归档指令写入对应文件。</p>
-      <p class="muted" style="margin-top:8px">工作台数据存本机；跨设备用「同步链接」或 CloudStudio 同一网址（手机书签不变）。</p>
+      <p><b>工作台（这里）</b>＝手机端极速录入。你在这里打卡、写日记、记待做、护肤。</p>
+      <p><b>Obsidian</b>＝知识沉淀中枢。日记、八字项目、健身 / 护肤理论都按你的目录归档。</p>
+      <p><b>WorkBuddy 大脑</b>＝唯一双向桥。AI 机器人把你的话发给我，我归类后回传，工作台自动写入；点「📋 复制今日内容」也可手动归档今日到 Obsidian。</p>
     </div>
   </section>
 
@@ -335,7 +376,7 @@
   <button class="navbtn" data-tab="fitness"><span class="ic">💪</span>健身</button>
   <button class="navbtn" data-tab="diary"><span class="ic">📔</span>日记</button>
   <button class="navbtn" data-tab="data"><span class="ic">📊</span>数据</button>
-  <button class="navbtn" data-tab="more"><span class="ic">☰</span>更多</button>
+  <button class="navbtn" data-tab="ai"><span class="ic">🤖</span>AI机器人</button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -355,7 +396,9 @@
 
 <script>
 const LS_KEY='zhaoxi_workbench_v4';
-const t0=new Date().toISOString().slice(0,10);
+function ymd(d){const off=d.getTimezoneOffset();const x=new Date(d.getTime()-off*60000);return x.toISOString().slice(0,10);}
+function todayStr(){return ymd(new Date());}
+const t0=todayStr();
 const MOODS=[{e:'😞',v:1},{e:'😕',v:2},{e:'😐',v:3},{e:'🙂',v:4},{e:'😄',v:5}];
 
 /* 预填：2026-07-31 八字项目·今日待办（来自 Obsidian 当日日记） */
@@ -386,11 +429,25 @@ const DEFAULT_DATA={
   ],
   checkins:[],
   diary:{},
-  todos:{'2026-07-31':JSON.parse(JSON.stringify(SEED_TODOS_0731))},
-  manualToday:[]
+  todos:{[t0]:JSON.parse(JSON.stringify(SEED_TODOS_0731))},
+  manualToday:[],
+  skincareItems:[
+    {id:'S1',name:'水',cat:'ampm'},
+    {id:'S2',name:'精华',cat:'ampm'},
+    {id:'S3',name:'其他',cat:'ampm',hint:'乳液、面膜等'}
+  ],
+  skincareCheckins:[]
 };
 let DATA;
 let USE_CLOUD=false;
+const LS_CFG='zhaoxi_cloud_cfg';
+function getCfg(){try{return JSON.parse(localStorage.getItem(LS_CFG))||{};}catch(e){return {};}}
+function setCfg(o){const c=getCfg();Object.assign(c,o);localStorage.setItem(LS_CFG,JSON.stringify(c));}
+const GH_API='https://api.github.com';
+const GH_FILE='zhaoxi-workbench.json';
+function cloudReady(){const c=getCfg();return !!(c.enabled&&c.token);}
+async function ghGet(){const c=getCfg();const r=await fetch(`${GH_API}/gists/${c.gistId}`,{headers:{Authorization:`Bearer ${c.token}`,Accept:'application/vnd.github+json'}});if(!r.ok)throw new Error('gh get '+r.status);const j=await r.json();const f=j.files&&j.files[GH_FILE];return f?JSON.parse(f.content):null;}
+async function ghPut(content){const c=getCfg();if(!c.gistId){const r=await fetch(`${GH_API}/gists`,{method:'POST',headers:{Authorization:`Bearer ${c.token}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({public:false,files:{[GH_FILE]:{content}}})});if(!r.ok)throw new Error('gh create '+r.status);const j=await r.json();setCfg({gistId:j.id});return;}const r=await fetch(`${GH_API}/gists/${c.gistId}`,{method:'PATCH',headers:{Authorization:`Bearer ${c.token}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({files:{[GH_FILE]:{content}}})});if(!r.ok)throw new Error('gh put '+r.status);}
 const PLAN_START_MS=()=>new Date(DATA.planStart+'T00:00:00').getTime();
 function dayDiff(a,b){return Math.round((new Date(a+'T00:00:00')-new Date(b+'T00:00:00'))/86400000);}
 function currentDay(){const d=dayDiff(t0,DATA.planStart)+1;return d<1?1:d;}
@@ -416,7 +473,7 @@ function lockedPhaseToday(){
   return locked;
 }
 function recentPerf(){const now=new Date();let cnt=0;
-  for(let i=0;i<7;i++){const d=new Date(now);d.setDate(now.getDate()-i);const ds=d.toISOString().slice(0,10);
+  for(let i=0;i<7;i++){const d=new Date(now);d.setDate(now.getDate()-i);const ds=ymd(d);
     if(DATA.checkins.some(c=>c.date===ds))cnt++;}return cnt;}
 function perfPoor(){const expected=Math.round((DATA.plan.freq||5)*0.6);return recentPerf()<expected;}
 
@@ -431,27 +488,38 @@ window.addTodo=function(date){const inp=document.getElementById('newTodo');const
   if(!DATA.todos)DATA.todos={};const arr=getTodos(date);arr.push({id:'t'+Date.now(),text:tx,done:false,source:''});DATA.todos[date]=arr;
   if(inp)inp.value='';if(inpD)inpD.value='';save();if(date===t0)renderToday();if(currentTab==='diary')renderDiary();};
 
-async function probeCloud(){try{const c=new AbortController();const t=setTimeout(()=>c.abort(),1500);
-  const r=await fetch('/api/data',{signal:c.signal});clearTimeout(t);USE_CLOUD=r.ok;}catch(e){USE_CLOUD=false;}}
-async function load(){if(USE_CLOUD){try{const r=await fetch('/api/data');const d=await r.json();if(d&&d.videos)return d;}catch(e){}}
-  try{const s=localStorage.getItem(LS_KEY);if(s){const d=JSON.parse(s);if(!d.diary)d.diary={};if(!d.todos)d.todos={};return d;}}catch(e){}
-  const d=JSON.parse(JSON.stringify(DEFAULT_DATA));return d;}
-async function save(){if(USE_CLOUD){try{await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(DATA)});return;}catch(e){}}
+async function probeCloud(){USE_CLOUD=cloudReady();}
+function normData(d){if(!d.diary)d.diary={};if(!d.todos)d.todos={};if(!d.skincareItems||!d.skincareItems.length)d.skincareItems=JSON.parse(JSON.stringify(DEFAULT_DATA.skincareItems));if(!d.skincareCheckins)d.skincareCheckins=[];return d;}
+async function load(){
+  if(USE_CLOUD){try{const d=await ghGet();if(d&&d.videos)return normData(d);}catch(e){toast('云端读取失败，改用本地存档');}}
+  try{const s=localStorage.getItem(LS_KEY);if(s){const d=JSON.parse(s);return normData(d);}}catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+async function save(){
   localStorage.setItem(LS_KEY,JSON.stringify(DATA));
-  try{history.replaceState(null,'','#d='+btoa(unescape(encodeURIComponent(JSON.stringify(DATA)))));}catch(e){}}
+  try{history.replaceState(null,'','#d='+btoa(unescape(encodeURIComponent(JSON.stringify(DATA)))));}catch(e){}
+  if(USE_CLOUD){try{await ghPut(JSON.stringify(DATA));}catch(e){toast('云端保存失败，已存本地');}}
+}
 function loadFromHash(){try{const h=location.hash;if(!h||h.indexOf('#d=')!==0)return false;
   const d=JSON.parse(decodeURIComponent(escape(atob(h.slice(3)))));if(d&&d.videos){if(!d.diary)d.diary={};if(!d.todos)d.todos={};DATA=d;return true;}}catch(e){}return false;}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+function banner(msg){let b=document.getElementById('warnBanner');if(!b){b=document.createElement('div');b.id='warnBanner';b.style.cssText='background:#fff4e5;color:#8a5a00;font-size:12px;line-height:1.55;padding:10px 12px;border-bottom:1px solid #f0c987;box-shadow:0 1px 4px rgba(0,0,0,.08)';document.body.insertBefore(b,document.body.firstChild);}b.innerHTML=msg;}
+function renderAll(){try{renderToday();}catch(e){}try{if(currentTab==='data')renderData();}catch(e){}try{if(currentTab==='diary')renderDiary();}catch(e){}}
+function renderCloudStatus(){const c=getCfg();const st=document.getElementById('cloudStatus');if(st)st.textContent=(c.enabled&&c.token)?('已启用 · 私密 Gist：'+(c.gistId||'').slice(0,6)+'…（自动同步中）'):'未启用';const ti=document.getElementById('cloudToken');if(ti)ti.value=c.token||'';}
+window.connectCloud=function(){const tok=document.getElementById('cloudToken').value.trim();if(!tok){toast('请先粘贴 PAT');return;}setCfg({token:tok,enabled:true});USE_CLOUD=true;const sub=document.getElementById('subtitle');if(sub)sub.textContent='已连接云端，自动同步';toast('正在连接云端…');
+  (async()=>{try{const d=await ghGet();if(d&&d.videos){DATA=normData(d);await save();renderAll();document.getElementById('cloudStatus').textContent='已启用 · 已拉取云端数据';toast('已同步云端数据 ✓');return;}}catch(e){}
+    await save();const c=getCfg();document.getElementById('cloudStatus').textContent='已启用 · 已创建私密 Gist 并同步';toast('云端同步已启用 ✓');})();};
+window.disconnectCloud=function(){setCfg({enabled:false});USE_CLOUD=false;const sub=document.getElementById('subtitle');if(sub)sub.textContent='';document.getElementById('cloudStatus').textContent='未启用';toast('已断开云端');};
 
 /* ===== 导航 ===== */
-const TABS=['today','fitness','diary','data','more'];
+const TABS=['today','fitness','diary','data','ai'];
 let currentTab='today';
 document.getElementById('navbar').addEventListener('click',e=>{const b=e.target.closest('.navbtn');if(!b)return;switchTab(b.dataset.tab);});
 function switchTab(name){currentTab=name;
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   TABS.forEach(s=>document.getElementById('tab-'+s).classList.toggle('hidden',s!==name));
   if(name==='today')renderToday();if(name==='fitness')renderFitness();if(name==='diary')renderDiary();
-  if(name==='data')renderData();if(name==='more')renderMore();}
+  if(name==='data')renderData();if(name==='ai')renderAI();}
 document.getElementById('fitTabs').addEventListener('click',e=>{const s=e.target.closest('.stab');if(!s)return;fitTab=s.dataset.ftab;renderFitness();});
 let fitTab='ftoday';
 function renderFitness(){document.querySelectorAll('.stab').forEach(s=>s.classList.toggle('active',s.dataset.ftab===fitTab));
@@ -481,8 +549,11 @@ function renderToday(){
   if(!todos.length){tl.innerHTML='<div class="empty" style="padding:14px">今日暂无待做，可在下方添加或从 Obsidian 同步</div>';}
   todos.forEach(t=>tl.appendChild(todoEl(t,t0)));
   // 训练速览
-  if(!tasks.length){fitBox.innerHTML=`<div class="card"><div class="empty">今日休息日 💤 可做可选有氧或主动恢复。<br>可在「健身→今日训练」点「➕ 添加今日训练」手动加一项。</div></div>`;}
-  else{fitBox.innerHTML='';tasks.forEach(t=>fitBox.appendChild(taskCard(t,true)));}
+  fitBox.innerHTML='<h3>💪 今日训练</h3>';
+  if(!tasks.length){fitBox.innerHTML+='<div class="empty">今日休息日 💤 可做可选有氧或主动恢复。<br>可在「健身→今日训练」点「➕ 添加今日训练」手动加一项。</div>';}
+  else{tasks.forEach(t=>fitBox.appendChild(taskCard(t,true)));}
+  // 护肤速览
+  renderSkincareToday();
   // 日记速览
   const di=getDiary(t0);const moodEmoji=di.moodEmoji||'—';const sleepTxt=di.sleep?di.sleep+'h':'未填';
   const written=di.content||di.gratitude||di.input||di.tomorrow;
@@ -527,6 +598,30 @@ window.confirmCheck=function(id,day){const feel=FEEL[id]||4;const note=(document
 function renderFitToday(){const box=document.getElementById('ftab-ftoday');const tasks=todayTasks();
   if(!tasks.length){box.innerHTML='<div class="card"><div class="empty">今日计划为休息日 💤 可做可选有氧或主动恢复。<br>想练也行：点上方「➕ 添加今日训练」手动加一项。</div></div>';return;}
   box.innerHTML='';tasks.forEach(t=>box.appendChild(taskCard(t,true)));}
+function renderSkincareToday(){const box=document.getElementById('todaySkincare');if(!box)return;
+  const items=DATA.skincareItems||[];const done=(DATA.skincareCheckins||[]).filter(c=>c.date===t0);
+  let html='<h3>🧴 今日护肤</h3>';
+  if(!items.length){box.innerHTML=html+'<div class="empty">暂未设置护肤流程</div>';return;}
+  html+='<div class="todolist">';
+  items.forEach(s=>{const c=done.find(x=>x.itemId===s.id);
+    html+=`<div class="todo${c?' done':''}" onclick="skinOpen('${s.id}')">
+      <span class="chk">${c?'✓':''}</span>
+      <div class="tx"><div>${s.name}</div>${s.hint?`<div class="meta">${s.hint}</div>`:''}</div>
+      ${c&&c.note?`<span class="pill ok">✓</span>`:(c?'<span class="pill ok">✓ 感受'+c.feel+'</span>':'<span class="arrow">›</span>')}
+    </div>`;});
+  html+='</div><div id="skinAreaBox"></div>';box.innerHTML=html;}
+window.skinOpen=function(id){const ex=DATA.skincareCheckins.find(c=>c.date===t0&&c.itemId===id);
+  if(ex){const nm=(DATA.skincareItems.find(s=>s.id===id)||{}).name||'该项';if(confirm('取消「'+nm+'」的今日护肤打卡？')){DATA.skincareCheckins=DATA.skincareCheckins.filter(c=>!(c.date===t0&&c.itemId===id));save();renderSkincareToday();renderData();toast('已取消');}return;}
+  const box=document.getElementById('skinAreaBox');box.innerHTML=`<div class="card" style="margin-top:8px">
+    <div class="muted" style="margin-bottom:4px">「${(DATA.skincareItems.find(s=>s.id===id)||{}).name}」感受（1-5）：</div>
+    <div class="feelrow" id="sfr_${id}">${[1,2,3,4,5].map(n=>`<div class="fb${n===4?' sel':''}" data-n="${n}" onclick="pickSkinFeel('${id}',${n})">${n}</div>`).join('')}</div>
+    <input class="noteinp" id="snote_${id}" placeholder="备注（如：皮肤偏干 / 泛红）">
+    <button class="btn ok block" style="margin-top:8px" onclick="confirmSkin('${id}')">确认打卡</button>
+  </div>`;}
+let SKFEEL={};
+window.pickSkinFeel=function(id,n){SKFEEL[id]=n;document.querySelectorAll('#sfr_'+id+' .fb').forEach(b=>b.classList.toggle('sel',+b.dataset.n===n));};
+window.confirmSkin=function(id){const feel=SKFEEL[id]||4;const note=(document.getElementById('snote_'+id).value||'').trim();
+  if(!DATA.skincareCheckins)DATA.skincareCheckins=[];DATA.skincareCheckins.push({date:t0,itemId:id,feel,note});save();renderSkincareToday();renderData();toast('已护肤 ✓');};
 
 /* ===== 手动添加今日训练 / 重置计划 ===== */
 window.showAddToday=function(){
@@ -563,11 +658,11 @@ function renderPlan(){const g=document.getElementById('goalCard');
 
 /* ===== 健身 · 周报 ===== */
 function renderReport(){const ci=DATA.checkins;const now=new Date();const dow=(now.getDay()+6)%7;const mon=new Date(now);mon.setDate(now.getDate()-dow);
-  const start=mon.toISOString().slice(0,10);const week=ci.filter(c=>c.date>=start);
+  const start=ymd(mon);const week=ci.filter(c=>c.date>=start);
   document.getElementById('repCount').textContent=week.length;
   const avg=week.length?(week.reduce((s,c)=>s+(+c.feel||0),0)/week.length).toFixed(1):'0';
   document.getElementById('repAvg').textContent=avg;
-  let streak=0;const cd=new Date(now);for(;;){const ds=cd.toISOString().slice(0,10);if(ci.some(c=>c.date===ds)){streak++;cd.setDate(cd.getDate()-1);}else break;}
+  let streak=0;const cd=new Date(now);for(;;){const ds=ymd(cd);if(ci.some(c=>c.date===ds)){streak++;cd.setDate(cd.getDate()-1);}else break;}
   document.getElementById('repStreak').textContent=streak;
   let completedDays=0;for(let d=1;d<=DATA.plan.totalDays;d++){const tasks=[];DATA.plan.phases.forEach(p=>{const on=(p.days==='daily')||(Array.isArray(p.days)&&p.days.includes(d));if(on&&!p.optional)p.items.forEach(v=>tasks.push(v));});
     if(tasks.length&&tasks.every(v=>DATA.checkins.some(c=>c.videoId===v&&c.planDay===d)))completedDays++;}
@@ -606,7 +701,7 @@ function renderDiary(){document.getElementById('diaryDate').textContent=t0;const
 window.pickMood=function(v,e){if(!DATA.diary)DATA.diary={};const cur=getDiary(t0);cur.moodVal=v;cur.moodEmoji=e;DATA.diary[t0]=cur;save();renderDiary();if(currentTab==='data')renderData();};
 
 /* ===== 数据 ===== */
-function lastDays(n){const out=[];const now=new Date();for(let i=n-1;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);out.push(d.toISOString().slice(0,10));}return out;}
+function lastDays(n){const out=[];const now=new Date();for(let i=n-1;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);out.push(ymd(d));}return out;}
 function bars(elId,data,colorVar){const box=document.getElementById(elId);if(!box)return;const max=Math.max(...data.map(d=>d.val),1);
   box.innerHTML=data.map(d=>`<div class="b"><div class="col" style="height:${Math.max(4,Math.round(d.val/max*70))}px;background:var(${colorVar})" title="${d.val}"></div><div class="lb">${d.lb}</div></div>`).join('');}
 function renderData(){
@@ -614,7 +709,7 @@ function renderData(){
     if(tasks.length&&tasks.every(v=>DATA.checkins.some(c=>c.videoId===v&&c.planDay===d)))completedDays++;}
   const rate=Math.round(completedDays/DATA.plan.totalDays*100);
   document.getElementById('dRate').textContent=rate+'%';document.getElementById('dRateBar').style.width=rate+'%';
-  let streak=0;const cd=new Date();for(;;){const ds=cd.toISOString().slice(0,10);if(DATA.checkins.some(c=>c.date===ds)){streak++;cd.setDate(cd.getDate()-1);}else break;}
+  let streak=0;const cd=new Date();for(;;){const ds=ymd(cd);if(DATA.checkins.some(c=>c.date===ds)){streak++;cd.setDate(cd.getDate()-1);}else break;}
   document.getElementById('dStreak').textContent=streak;
   const days=lastDays(7);const weekCnt=DATA.checkins.filter(c=>days.includes(c.date)).length;
   document.getElementById('dWeek').textContent=weekCnt;
@@ -622,7 +717,7 @@ function renderData(){
   bars('chartMood',days.map(d=>({lb:d.slice(5),val:getDiary(d).moodVal||0})),'--mood');
   bars('chartSleep',days.map(d=>({lb:d.slice(5),val:parseFloat(getDiary(d).sleep)||0})),'--sleep');
   const todos=getTodos(t0);document.getElementById('dTodoDone').textContent=todos.filter(t=>t.done).length;
-  document.getElementById('dTodoTotal').textContent=todos.length;}
+  document.getElementById('dTodoTotal').textContent=todos.length;renderSkincareStat();}
 
 /* ===== 更多 ===== */
 function renderMore(){}
@@ -637,9 +732,42 @@ window.syncToday=function(){const d=t0;const di=getDiary(d);const ts=getTodos(d)
   md+=`## 输入·收获\n${di.input||'-'}\n\n`;
   md+=`## 明日计划\n${di.tomorrow||'-'}\n\n`;
   md+=`## 健身打卡（${d}）\n`+(ci.length?ci.map(c=>{const v=vid(c.videoId);return `- ${v?v.title:'?'}: 感受${c.feel}${c.note?('｜'+c.note):''}`;}).join('\n'):'- 今日未训练')+'\n';
+  const sk=(DATA.skincareCheckins||[]).filter(c=>c.date===d);
+  md+=`## 护肤打卡（${d}）\n`+(sk.length?sk.map(c=>{const s=(DATA.skincareItems||[]).find(x=>x.id===c.itemId);return `- ${s?s.name:'?'}: 感受${c.feel}${c.note?('｜'+c.note):''}`;}).join('\n'):'- 今日未护肤')+'\n';
   document.getElementById('syncText').value=md;
   const m=document.getElementById('syncModal');m.classList.remove('hidden');
   navigator.clipboard?.writeText(md).then(()=>toast('已复制今日内容 ✓'),()=>{});};
+window.toggleSettings=function(){const p=document.getElementById('setPanel');if(p)p.classList.toggle('hidden');};
+function renderAI(){}
+function skincareStreak(){let s=0;const cd=new Date();for(;;){const ds=ymd(cd);if((DATA.skincareCheckins||[]).some(c=>c.date===ds)){s++;cd.setDate(cd.getDate()-1);}else break;}return s;}
+function renderSkincareStat(){const ci=DATA.skincareCheckins||[];const days=lastDays(7);
+  const wk=days.filter(d=>ci.some(c=>c.date===d)).length;
+  const total=ci.filter(c=>days.includes(c.date)).length;
+  const daily=(DATA.skincareItems||[]).filter(s=>s.cat!=='weekly').length||3;
+  const rate=Math.min(100,Math.round(total/(7*daily)*100));
+  const a=document.getElementById('skWeek');if(a)a.textContent=wk;
+  const b=document.getElementById('skStreak');if(b)b.textContent=skincareStreak();
+  const c=document.getElementById('skRate');if(c)c.textContent=rate+'%';
+  bars('chartSkincare',days.map(d=>({lb:d.slice(5),val:ci.filter(x=>x.date===d).length})),'--brand');}
+window.aiSend=function(){const v=document.getElementById('aiInput').value.trim();if(!v){toast('先写点什么');return;}
+  const text='这是用户在工作台「AI机器人」里输入的内容，请帮我归类到今天的记录。\n请只返回如下格式（没有就省略该标签，不要解释、不要加其他文字）：\n[待做] 一条待办（可多行）\n[感恩] 值得感谢的事\n[睡眠] 数字（小时）\n[心情] 一个emoji\n[护肤] 逗号分隔的护肤动作名（如 水,精华,其他）\n\n用户输入：\n'+v;
+  navigator.clipboard?.writeText(text).then(()=>toast('已复制，去 WorkBuddy 粘贴发我 ✓'),()=>{});
+  const log=document.getElementById('aiLog');if(log)log.textContent='已复制，去 WorkBuddy 粘贴发我，再把回传贴到下方框。';};
+window.aiApply=function(){const v=document.getElementById('aiRecv').value;if(!v.trim()){toast('先粘贴大脑回传');return;}
+  let add={todo:0,gratitude:0,sleep:0,mood:0,skincare:0};let cur=null;
+  v.split('\n').forEach(ln=>{const m=ln.match(/^\[(待做|感恩|睡眠|心情|护肤)\]\s*(.*)$/);
+    if(m){cur=m[1];const val=m[2].trim();if(!val)return;
+      if(cur==='待做'){addTodoText(val);add.todo++;}
+      else if(cur==='感恩'){appendDiary('gratitude',val);add.gratitude++;}
+      else if(cur==='睡眠'){setDiaryField('sleep',val);add.sleep++;}
+      else if(cur==='心情'){setDiaryField('moodEmoji',val);add.mood++;}
+      else if(cur==='护肤'){val.split(/[,，、]/).forEach(nm=>{const it=(DATA.skincareItems||[]).find(s=>s.name===nm.trim());if(it){if(!DATA.skincareCheckins)DATA.skincareCheckins=[];if(!DATA.skincareCheckins.some(c=>c.date===t0&&c.itemId===it.id)){DATA.skincareCheckins.push({date:t0,itemId:it.id,feel:4,note:''});add.skincare++;}}});}
+    } else if(cur&&ln.trim()){if(cur==='待做'){addTodoText(ln.trim());add.todo++;}else if(cur==='感恩'){appendDiary('gratitude',ln.trim());add.gratitude++;}}});
+  save();renderToday();renderDiary();renderData();
+  const log=document.getElementById('aiLog');if(log)log.textContent='已写入：待做'+add.todo+' 感恩'+add.gratitude+' 睡眠'+add.sleep+' 心情'+add.mood+' 护肤'+add.skincare;
+  toast('已写入工作台 ✓');};
+function addTodoText(tx){if(!DATA.todos)DATA.todos={};const arr=getTodos(t0);arr.push({id:'t'+Date.now()+Math.random().toString(36).slice(2,5),text:tx,done:false,source:''});DATA.todos[t0]=arr;}
+function appendDiary(field,val){if(!DATA.diary)DATA.diary={};const d=t0;const cur=getDiary(d);cur[field]=(cur[field]?cur[field]+'\n':'')+val;DATA.diary[d]=cur;}
 document.getElementById('btnCopySync').addEventListener('click',()=>{const t=document.getElementById('syncText');t.select();navigator.clipboard?.writeText(t.value);toast('已复制 ✓');});
 document.getElementById('btnCloseSync').addEventListener('click',()=>document.getElementById('syncModal').classList.add('hidden'));
 
@@ -647,7 +775,15 @@ document.getElementById('btnCloseSync').addEventListener('click',()=>document.ge
 window.genSyncLink=function(){const url=location.origin+location.pathname+'#d='+btoa(unescape(encodeURIComponent(JSON.stringify(DATA))));
   navigator.clipboard?.writeText(url).then(()=>toast('同步链接已复制 ✓'),()=>{});
   prompt('把链接发到另一台设备打开即载入同一份数据（已复制剪贴板）：',url);};
-window.exportData=function(){const b=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='zhaoxi-workbench.json';a.click();toast('已导出');};
+window.exportData=function(){
+  const ts=new Date(),pad=n=>String(n).padStart(2,'0');
+  const stamp=`${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}-${pad(ts.getHours())}${pad(ts.getMinutes())}`;
+  const b=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`朝夕工作台-备份-${stamp}.json`;
+  document.body.appendChild(a);a.click();a.remove();
+  toast('已下载备份 ✓ 请存进 iCloud 云盘/文件 App');
+};
 window.importData=function(){document.getElementById('fileInput').click();};
 document.getElementById('fileInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{DATA=JSON.parse(r.result);if(!DATA.diary)DATA.diary={};if(!DATA.todos)DATA.todos={};save();renderToday();toast('已导入');}catch(err){toast('文件格式错误');}};r.readAsText(f);});
 document.getElementById('btnAddVideo').addEventListener('click',()=>{
@@ -683,12 +819,18 @@ document.getElementById('btnReplan').addEventListener('click',()=>{const freq=pr
   if(aerobic.length)phases.push({name:'有氧（每日可选）',days:'daily',optional:true,items:aerobic.map(v=>v.id),logic:'每日可选，培养习惯、不追求速度'});
   DATA.plan.phases=phases;DATA.planStart=t0;save();renderPlan();toast('已按「由下而上」重新统筹 ✓');});
 
-(async function init(){await probeCloud();if(!DATA)DATA=await load();
+(async function init(){await probeCloud();
+  const hadLocal=!!localStorage.getItem(LS_KEY);
+  if(!DATA)DATA=await load();
+  if(!hadLocal && !USE_CLOUD){
+    banner('⚠️ 未发现本地存档，已载入默认示例。你之前填的日记/待做可能还在另一个浏览器里（Safari、主屏幕图标、微信、备用网址是<b>四个不同的存储</b>），或已被 iOS 清理。请<b>从常用入口打开同一个书签/图标</b>，并养成「📤 一键同步今日 → Obsidian」的习惯，数据才不会因为清缓存而丢。');
+  }
   // 自动追平：若计划已开始超过总天数(过期)或尚未开始，把计划起点拉回今天，避免今日训练空白
   if(dayDiff(t0,DATA.planStart) >= DATA.plan.totalDays || dayDiff(t0,DATA.planStart) < 0){
     DATA.planStart=t0;save();toast('计划已自动从今天重新开始 ✓');
   }
   if(USE_CLOUD){document.getElementById('subtitle').textContent='已连接云端，自动同步';}
+  renderCloudStatus();
   renderToday();})();
 </script>
 </body>

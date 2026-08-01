@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6f7fb"/>
+      <stop offset="1" stop-color="#edeef5"/>
+    </linearGradient>
+    <linearGradient id="sunWarm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e3b187"/>
+      <stop offset="0.5" stop-color="#e8b4c4"/>
+      <stop offset="1" stop-color="#b9a4d4"/>
+    </linearGradient>
+    <linearGradient id="sunCool" x1="1" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#7c9eb2"/>
+      <stop offset="0.5" stop-color="#9aa9d4"/>
+      <stop offset="1" stop-color="#b9a4d4"/>
+    </linearGradient>
+    <linearGradient id="rayWarm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e3b187" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#e8b4c4" stop-opacity="0.3"/>
+    </linearGradient>
+    <linearGradient id="rayCool" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7c9eb2" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#9aa9d4" stop-opacity="0.3"/>
+    </linearGradient>
+    <clipPath id="leftHalf">
+      <rect x="0" y="0" width="90" height="180"/>
+    </clipPath>
+    <clipPath id="rightHalf">
+      <rect x="90" y="0" width="90" height="180"/>
+    </clipPath>
+  </defs>
+
+  <rect width="180" height="180" fill="url(#bg)" rx="40"/>
+
+  <!-- rays - left side (warm/朝) -->
+  <g stroke-linecap="round" stroke-width="5" fill="none">
+    <line x1="90" y1="32" x2="90" y2="18" stroke="url(#rayWarm)"/>
+    <line x1="47" y1="47" x2="37" y2="37" stroke="url(#rayWarm)"/>
+    <line x1="32" y1="90" x2="18" y2="90" stroke="url(#rayWarm)"/>
+    <line x1="52" y1="128" x2="42" y2="138" stroke="url(#rayWarm)"/>
+  </g>
+
+  <!-- rays - right side (cool/夕) -->
+  <g stroke-linecap="round" stroke-width="5" fill="none">
+    <line x1="90" y1="32" x2="90" y2="18" stroke="url(#rayCool)"/>
+    <line x1="133" y1="47" x2="143" y2="37" stroke="url(#rayCool)"/>
+    <line x1="148" y1="90" x2="162" y2="90" stroke="url(#rayCool)"/>
+    <line x1="128" y1="128" x2="138" y2="138" stroke="url(#rayCool)"/>
+  </g>
+
+  <!-- bottom rays -->
+  <g stroke-linecap="round" stroke-width="5" fill="none">
+    <line x1="65" y1="148" x2="60" y2="160" stroke="url(#rayWarm)"/>
+    <line x1="115" y1="148" x2="120" y2="160" stroke="url(#rayCool)"/>
+    <line x1="90" y1="152" x2="90" y2="164" stroke="#b9a4d4" stroke-opacity="0.5"/>
+  </g>
+
+  <!-- sun body - left half (warm/朝) -->
+  <circle cx="90" cy="90" r="42" fill="url(#sunWarm)" clip-path="url(#leftHalf)"/>
+
+  <!-- sun body - right half (cool/夕) -->
+  <circle cx="90" cy="90" r="42" fill="url(#sunCool)" clip-path="url(#rightHalf)"/>
+
+  <!-- center blend -->
+  <circle cx="90" cy="90" r="42" fill="#b9a4d4" opacity="0.15"/>
+
+  <!-- horizon line subtle -->
+  <line x1="40" y1="90" x2="140" y2="90" stroke="#ffffff" stroke-width="1" opacity="0.3"/>
+</svg>
