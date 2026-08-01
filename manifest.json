@@ -1,0 +1,12 @@
+{
+  "name": "朝夕的工作台",
+  "short_name": "朝夕",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f7fb",
+  "theme_color": "#7c9eb2",
+  "icons": [
+    {"src": "favicon.png", "sizes": "32x32", "type": "image/png"},
+    {"src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png"}
+  ]
+}
